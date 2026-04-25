@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>復興區公所教育訓練數位平台</title>
+    <style>
+        :root {
+            --primary-color: #7c9473; 
+            --accent-color: #e8eae6;
+            --text-color: #4b5d67;
+            --bg-color: #faf9f6;
+            --card-bg: #ffffff;
+            --admin-color: #c97a7e; 
+            --success-color: #6a8a61;
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0; padding: 0; line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 2.5rem 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky; top: 0; z-index: 100;
+            text-align: center; /* 標題與副標題置中 */
+        }
+
+        header h1 { margin: 0; font-size: 1.8rem; color: var(--primary-color); letter-spacing: 2px; }
+        header p { margin: 12px 0 0; font-size: 1.1rem; color: #888; font-weight: 300; }
+
+        nav { 
+            display: flex; background: #fff; padding: 10px; 
+            border-bottom: 1px solid #eee; overflow-x: auto; white-space: nowrap;
+            justify-content: center;
+        }
+
+        nav button {
+            background: none; border: none; padding: 10px 18px; margin: 0 5px; cursor: pointer;
+            font-size: 0.95rem; color: var(--text-color); transition: 0.3s; border-radius: 25px;
+        }
+
+        nav button.active { background-color: var(--primary-color); color: white; }
+        nav button.admin-btn { border: 1px dashed var(--admin-color); color: var(--admin-color); }
+
+        .container { max-width: 900px; margin: 25px auto; padding: 0 15px; }
+
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: white; padding: 30px; border-radius: 18px; margin-bottom: 25px; box-shadow: 0 6px 20px rgba(0,0,0,0.03); }
+        
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.95rem;}
+        .input-group input, .input-group textarea, .input-group select {
+            width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 1rem;
+        }
+
+        .btn {
+            display: inline-block; background: var(--primary-color); color: white;
+            padding: 14px 25px; border-radius: 30px; text-decoration: none;
+            font-size: 1rem; border: none; cursor: pointer; text-align: center; width: 100%; transition: 0.3s;
+        }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .question-box { border-bottom: 1px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 20px; }
+        .question-box:last-child { border: none; }
+
+        /* 後台數據樣式 */
+        .admin-section { margin-top: 30px; }
+        .table-wrapper { overflow-x: auto; background: white; border-radius: 12px; border: 1px solid #eee; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem;}
+        th, td { border: 1px solid #eee; padding: 14px; text-align: left; }
+        th { background: var(--accent-color); font-weight: bold; }
+
+        .export-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .btn-export { background: #555; width: auto; font-size: 0.85rem; padding: 8px 15px; }
+
+        footer { text-align: center; padding: 50px; font-size: 0.85rem; color: #aaa; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>復興區公所教育訓練數位平台</h1>
+    <p>效率與溫柔並存，開啟數位治理新篇章</p>
+</header>
+
+<nav>
+    <button class="active" onclick="showTab('home')">首頁簽到</button>
+    <button onclick="showTab('training')">課程教材</button>
+    <button onclick="showTab('personnel')">權益補給站</button>
+    <button onclick="showTab('survey')">滿意度調查</button>
+    <button class="admin-btn" onclick="tryAccessAdmin()">🔐 後台管理</button>
+</nav>
+
+<div class="container">
+    <div id="home" class="tab-content active">
+        <div id="checkin-ui">
+            <div class="card" style="background: #fdfaf6; text-align: center;">
+                <h3 id="status-title">⏳ 系統狀態：等待開放</h3>
+                <p id="status-desc">請靜待講師或人事室開啟簽到權限。</p>
+            </div>
+            
+            <div id="checkin-form" class="card" style="display: none;">
+                <h3 style="color:var(--primary-color)">📝 參與同仁簽到</h3>
+                <div class="input-group">
+                    <label>單位名稱：</label>
+                    <input type="text" id="dept" placeholder="如：人事室、民政課">
+                </div>
+                <div class="input-group">
+                    <label>同仁姓名：</label>
+                    <input type="text" id="userName" placeholder="請輸入您的姓名">
+                </div>
+                <button class="btn" onclick="handleCheckIn()">確認簽到</button>
+            </div>
+        </div>
+        <div id="checkin-success" class="card" style="display: none; background: #f4f9f4; border: 1px solid #d4edda; text-align:center;">
+            <h3 style="color: #155724;">✅ 簽到已完成</h3>
+            <p id="success-msg"></p>
+            <p style="font-size: 0.9rem; color: #666;">您可以開始瀏覽「課程教材」或進行「滿意度調查」。</p>
+        </div>
+    </div>
+
+    <div id="training" class="tab-content">
+        <div class="card" style="border-left: 5px solid var(--primary-color);">
+            <h3>1. 兩公約與人權教育</h3>
+            <p>建立行政防護網，保障基本權利。</p>
+            <button class="btn" style="background:#8ca1a5;">下載數位教材</button>
+        </div>
+        <div class="card" style="border-left: 5px solid var(--primary-color);">
+            <h3>2. CEDAW 初階：性別平權</h3>
+            <p>看見多元，打造職場友善空間。</p>
+            <button class="btn" style="background:#8ca1a5;">下載數位教材</button>
+        </div>
+        <div class="card" style="border-left: 5px solid var(--primary-color);">
+            <h3>3. CEDAW 進階：實務解析</h3>
+            <p>結合最新性平法修法重點與案例。</p>
+            <button class="btn" style="background:#8ca1a5;">下載數位教材</button>
+        </div>
+        <div class="card" style="border-left: 5px solid #d4a5a5;">
+            <h3>4. EAP 課程：永生花療癒手作 🌸</h3>
+            <p>透過指尖與花朵的對話，找回身心平衡。</p>
+            <button class="btn" style="background:#d4a5a5;">進入影音引導</button>
+        </div>
+    </div>
+
+    <div id="personnel" class="tab-content">
+        <div class="card">
+            <h3 style="color:var(--primary-color)">📢 人事業務宣導</h3>
+            <ul style="line-height: 2.2;">
+                <li>🛡️ <strong>性平法修正：</strong>強化申訴調查專業性。</li>
+                <li>⏱️ <strong>加班補休：</strong>新制兩年期限計算提醒。</li>
+                <li>💳 <strong>國旅卡新制：</strong>觀光旅遊額度運用說明。</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="survey" class="tab-content">
+        <div class="card">
+            <h3 style="color:var(--primary-color)">💬 課程滿意度回饋</h3>
+            <p style="background:#fff3cd; padding:10px; border-radius:10px; font-size:0.9rem;">
+                💡 <strong>OSP 機制說明：</strong>本問卷結果僅供課程優化參考，誠實回饋是最好的策略。
+            </p>
+            
+            <div id="survey-form">
+                <div class="question-box">
+                    <label>1. 課程內容對您業務執行或專業知能是否有實質幫助？</label>
+                    <select id="q1"><option value="5">非常滿意 (5)</option><option value="4">滿意 (4)</option><option value="3">普通 (3)</option><option value="2">不滿意 (2)</option><option value="1">非常不滿意 (1)</option></select>
+                </div>
+                <div class="question-box">
+                    <label>2. 您對「數位化平台」（簽到、數位教材）的便利性是否滿意？</label>
+                    <select id="q2"><option value="5">非常滿意 (5)</option><option value="4">滿意 (4)</option><option value="3">普通 (3)</option><option value="2">不滿意 (2)</option><option value="1">非常不滿意 (1)</option></select>
+                </div>
+                <div class="question-box">
+                    <label>3. 講師的授課內容編排是否易於理解與吸收？</label>
+                    <select id="q3"><option value="5">非常滿意 (5)</option><option value="4">滿意 (4)</option><option value="3">普通 (3)</option><option value="2">不滿意 (2)</option><option value="1">非常不滿意 (1)</option></select>
+                </div>
+                <div class="question-box">
+                    <label>4. 關於 EAP 舒壓課程（如永生花）對緩解工作壓力的效果？</label>
+                    <select id="q4"><option value="5">非常滿意 (5)</option><option value="4">滿意 (4)</option><option value="3">普通 (3)</option><option value="2">不滿意 (2)</option><option value="1">非常不滿意 (1)</option></select>
+                </div>
+                <div class="question-box">
+                    <label>5. 您認為採用「數位秩序冊」代替紙本是否更有行政效率？</label>
+                    <select id="q5"><option value="5">非常滿意 (5)</option><option value="4">滿意 (4)</option><option value="3">普通 (3)</option><option value="2">不滿意 (2)</option><option value="1">非常不滿意 (1)</option></select>
+                </div>
+                <div class="question-box">
+                    <label>6. 其他建議或想對人事室說的話：</label>
+                    <textarea id="other-feedback" rows="3" placeholder="您的寶貴意見是我們的動力..."></textarea>
+                </div>
+                <button class="btn" onclick="handleSurveySubmit()">送出問卷回饋</button>
+            </div>
+            <div id="survey-thanks" style="display:none; text-align:center;">
+                <h3 style="color:var(--primary-color)">✨ 謝謝您的回饋！</h3>
+                <p>我們已收到您的願望與建議。</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin" class="tab-content">
+        <div class="card" style="border: 1px solid var(--admin-color);">
+            <h2 style="color:var(--admin-color); margin-top:0;">📊 人事室管理後台</h2>
+            
+            <div style="background: #fdfaf6; padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+                <strong>控制中心：</strong>
+                <button id="toggleBtn" class="btn" style="width:auto; padding:8px 20px; margin-left:15px;" onclick="toggleCheckin()">開啟同仁簽到</button>
+            </div>
+
+            <div class="admin-section">
+                <div class="export-group">
+                    <h3>1. 簽到名冊統計</h3>
+                    <button class="btn btn-export" onclick="exportToExcel('records')">📥 匯出簽到表 (Excel/CSV)</button>
+                </div>
+                <div class="table-wrapper">
+                    <table id="adminTable">
+                        <thead><tr><th>簽到時間</th><th>單位</th><th>姓名</th></tr></thead>
+                        <tbody id="adminBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <div class="export-group">
+                    <h3>2. 問卷調查結果</h3>
+                    <button class="btn btn-export" onclick="exportToExcel('surveys')">📥 匯出問卷結果 (Excel/CSV)</button>
+                </div>
+                <div class="table-wrapper">
+                    <table id="surveyTable">
+                        <thead>
+                            <tr><th>時間</th><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th><th>Q5</th><th>建議事項</th></tr>
+                        </thead>
+                        <tbody id="surveyBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <button class="btn" style="background:#d9534f; margin-top: 40px; width:100%;" onclick="clearData()">⚠️ 清空所有資料 (結案後請執行)</button>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>復興區公所人事室 2026 | 數位轉型實作作品</p>
+    <p>老祖宗保佑我 🎶 溫柔與效率並存</p>
+</footer>
+
+<script>
+    const ADMIN_PWD = "2026";
+    
+    // 初始化
+    document.addEventListener("DOMContentLoaded", () => {
+        const isOpen = localStorage.getItem('isCheckinOpen') === 'true';
+        updateCheckinState(isOpen);
+        renderAdminTables();
+    });
+
+    function showTab(tabId) {
+        if(tabId === 'admin') return; 
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // 後台權限驗證
+    function tryAccessAdmin() {
+        const pwd = prompt("請輸入後台管理密碼：");
+        if(pwd === ADMIN_PWD) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('admin').classList.add('active');
+            renderAdminTables();
+        } else if (pwd !== null) {
+            alert("密碼錯誤，請洽管理員。");
+        }
+    }
+
+    // 簽到控制
+    function toggleCheckin() {
+        const currentState = localStorage.getItem('isCheckinOpen') === 'true';
+        localStorage.setItem('isCheckinOpen', !currentState);
+        updateCheckinState(!currentState);
+        alert(!currentState ? "已開啟簽到系統" : "已關閉簽到系統");
+    }
+
+    function updateCheckinState(isOpen) {
+        const btn = document.getElementById('toggleBtn');
+        const title = document.getElementById('status-title');
+        const form = document.getElementById('checkin-form');
+        const desc = document.getElementById('status-desc');
+
+        if(isOpen) {
+            btn.innerText = "關閉同仁簽到";
+            btn.style.background = "#c97a7e";
+            title.innerText = "📝 數位簽到開放中";
+            title.style.color = "#7c9473";
+            form.style.display = "block";
+            desc.style.display = "none";
+        } else {
+            btn.innerText = "開啟同仁簽到";
+            btn.style.background = "#7c9473";
+            title.innerText = "⏳ 課程尚未開放簽到";
+            title.style.color = "#888";
+            form.style.display = "none";
+            desc.style.display = "block";
+        }
+    }
+
+    // 資料處理
+    function handleCheckIn() {
+        const dept = document.getElementById('dept').value;
+        const name = document.getElementById('userName').value;
+        if(!dept || !name) return alert("請填寫完整簽到資訊");
+
+        const data = JSON.parse(localStorage.getItem('records') || '[]');
+        const time = new Date().toLocaleString('zh-TW', {hour12:false});
+        data.push({ time, dept, name });
+        localStorage.setItem('records', JSON.stringify(data));
+
+        document.getElementById('checkin-ui').style.display = 'none';
+        document.getElementById('checkin-success').style.display = 'block';
+        document.getElementById('success-msg').innerText = `${name} 同仁，您已完成簽到！`;
+    }
+
+    function handleSurveySubmit() {
+        const surveyData = {
+            time: new Date().toLocaleString('zh-TW', {hour12:false}),
+            q1: document.getElementById('q1').value,
+            q2: document.getElementById('q2').value,
+            q3: document.getElementById('q3').value,
+            q4: document.getElementById('q4').value,
+            q5: document.getElementById('q5').value,
+            other: document.getElementById('other-feedback').value
+        };
+
+        const allSurveys = JSON.parse(localStorage.getItem('surveys') || '[]');
+        allSurveys.push(surveyData);
+        localStorage.setItem('surveys', JSON.stringify(allSurveys));
+
+        document.getElementById('survey-form').style.display = 'none';
+        document.getElementById('survey-thanks').style.display = 'block';
+    }
+
+    // 後台渲染
+    function renderAdminTables() {
+        const records = JSON.parse(localStorage.getItem('records') || '[]');
+        const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
+
+        document.getElementById('adminBody').innerHTML = records.map(r => 
+            `<tr><td>${r.time}</td><td>${r.dept}</td><td>${r.name}</td></tr>`
+        ).join('');
+
+        document.getElementById('surveyBody').innerHTML = surveys.map(s => 
+            `<tr><td>${s.time}</td><td>${s.q1}</td><td>${s.q2}</td><td>${s.q3}</td><td>${s.q4}</td><td>${s.q5}</td><td>${s.other}</td></tr>`
+        ).join('');
+    }
+
+    // Excel (CSV) 匯出功能
+    function exportToExcel(type) {
+        const data = JSON.parse(localStorage.getItem(type) || '[]');
+        if (data.length === 0) return alert("目前尚無資料可匯出！");
+
+        let csvContent = "\uFEFF"; // 加入 UTF-8 BOM 解決 Excel 亂碼
+        
+        if (type === 'records') {
+            csvContent += "簽到時間,單位,姓名\n";
+            data.forEach(r => csvContent += `"${r.time}","${r.dept}","${r.name}"\n`);
+        } else {
+            csvContent += "填寫時間,Q1幫助,Q2平台便利,Q3教材編排,Q4舒壓效果,Q5數位效率,建議事項\n";
+            data.forEach(s => csvContent += `"${s.time}","${s.q1}","${s.q2}","${s.q3}","${s.q4}","${s.q5}","${s.other}"\n`);
+        }
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `復興區公所_${type === 'records' ? '簽到名冊' : '問卷結果'}_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function clearData() {
+        if(confirm("確定要永久清空所有簽到與問卷資料嗎？（建議匯出存檔後再執行）")) {
+            localStorage.removeItem('records');
+            localStorage.removeItem('surveys');
+            renderAdminTables();
+            alert("資料已清空。");
+        }
+    }
+</script>
+
+</body>
+</html>
