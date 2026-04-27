@@ -325,7 +325,7 @@
         if(!data.length) return alert("無資料");
         let csv = "\uFEFF";
         if(type==='records') { csv += "時間,單位,姓名\n"; data.forEach(x=> csv += `"${x.time}","${x.dept}","${x.name}"\n`); }
-        else { csv += "時間,Q1,Q2,Q3,Q4,Q5,建議\n"; data.forEach(x=> csv += `"${x.time}","${x.q1}","${x.q2}","${x.q3}","${x.q4}","${x.q5}","${x.other}"\n`); }
+        else { csv += "時間,Q1,Q2,Q3,Q4,Q5,Q6,Q7,建議\n"; data.forEach(x=> csv += `"${x.time}","${x.q1}","${x.q2}","${x.q3}","${x.q4}","${x.q5}","${x.q6}""${x.q7}""${x.other}"\n`); }
         const link = document.createElement("a");
         link.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'}));
         link.download = `復興區公所_${type}.csv`;
