@@ -317,7 +317,7 @@
         const r = JSON.parse(localStorage.getItem('records') || '[]');
         const s = JSON.parse(localStorage.getItem('surveys') || '[]');
         document.getElementById('adminBody').innerHTML = r.map(x => `<tr><td>${x.time}</td><td>${x.dept}</td><td>${x.name}</td></tr>`).join('');
-        document.getElementById('surveyBody').innerHTML = s.map(x => `<tr><td>${x.time}</td><td>${x.q1}</td><td>${x.q2}</td><td>${x.q3}</td><td>${x.q4}</td><td>${x.q5}</td><td>${x.other}</td></tr>`).join('');
+        document.getElementById('surveyBody').innerHTML = s.map(x => `<tr><td>${x.time}</td><td>${x.q1}</td><td>${x.q2}</td><td>${x.q3}</td><td>${x.q4}</td><td>${x.q5}</td><td>${x.q6}</td><td>${x.q7}</td><td>${x.other}</td></tr>`).join('');
     }
 
     function exportToExcel(type) {
