@@ -298,6 +298,46 @@
     }
 
     // 教材模擬上傳邏輯
+    <script>
+    const ADMIN_PWD = "2026";
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        updateCheckinState(localStorage.getItem('isCheckinOpen') === 'true');
+        loadMaterials();
+        renderAdminTables();
+    });
+
+    function showTab(tabId) {
+        if(tabId === 'admin') return; 
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+        if(tabId === 'training') loadMaterials();
+    }
+
+    function tryAccessAdmin() {
+        if(prompt("請輸入密碼：") === ADMIN_PWD) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('admin').classList.add('active');
+            renderAdminTables();
+            loadMaterials();
+        } else { alert("不對喔！不是這樣的喔！"); }
+    }
+
+    // 教材模擬上傳邏輯 (這個剛剛不小心被刪掉了，補回來！)
+    function uploadMaterial(id, input) {
+        if (input.files && input.files[0]) {
+            const fileName = input.files[0].name;
+            const materials = JSON.parse(localStorage.getItem('materials') || '{}');
+            materials[id] = fileName;
+            localStorage.setItem('materials', JSON.stringify(materials));
+            alert(`課程 ${id} 教材已更新為：${fileName}`);
+            loadMaterials();
+        }
+    }
+
+    // 載入與更新按鈕邏輯 (保留具有下載功能的這個版本)
     function loadMaterials() {
         const materials = JSON.parse(localStorage.getItem('materials') || '{}');
         for (let i = 1; i <= 4; i++) {
@@ -321,16 +361,68 @@
         }
     }
 
-    function loadMaterials() {
-        const materials = JSON.parse(localStorage.getItem('materials') || '{}');
-        for (let i = 1; i <= 4; i++) {
-            if (materials[i]) {
-                if(document.getElementById(`file-name-${i}`)) document.getElementById(`file-name-${i}`).innerText = `最新教材：${materials[i]}`;
-                if(document.getElementById(`btn-${i}`)) document.getElementById(`btn-${i}`).innerText = `下載：${materials[i]}`;
-                if(document.getElementById(`admin-file-${i}`)) document.getElementById(`admin-file-${i}`).innerText = materials[i];
-            }
+    function toggleCheckin() {
+        const currentState = localStorage.getItem('isCheckinOpen') === 'true';
+        localStorage.setItem('isCheckinOpen', !currentState);
+        updateCheckinState(!currentState);
+    }
+
+    function updateCheckinState(isOpen) {
+        const btn = document.getElementById('toggleBtn');
+        const title = document.getElementById('status-title');
+        const form = document.getElementById('checkin-form');
+        const desc = document.getElementById('status-desc');
+        if(isOpen) {
+            btn.innerText = "關閉簽到"; btn.style.background = "#c97a7e";
+            title.innerText = "📝 簽到開放中"; form.style.display = "block"; desc.style.display = "none";
+        } else {
+            btn.innerText = "開啟簽到"; btn.style.background = "#7c9473";
+            title.innerText = "⏳ 課程尚未開始"; form.style.display = "none"; desc.style.display = "block";
         }
     }
+
+    function handleCheckIn() {
+        const dept = document.getElementById('dept').value;
+        const name = document.getElementById('userName').value;
+        if(!dept || !name) return alert("請輸入完整");
+        const data = JSON.parse(localStorage.getItem('records') || '[]');
+        data.push({ time: new Date().toLocaleString(), dept, name });
+        localStorage.setItem('records', JSON.stringify(data));
+        document.getElementById('checkin-ui').style.display = 'none';
+        document.getElementById('checkin-success').style.display = 'block';
+        document.getElementById('success-msg').innerText = `${name} 同仁簽到成功！`;
+    }
+
+    function handleSurveySubmit() {
+        const survey = { time: new Date().toLocaleString(), q1: document.getElementById('q1').value, q2: document.getElementById('q2').value, q3: document.getElementById('q3').value, q4: document.getElementById('q4').value, q5: document.getElementById('q5').value, q6: document.getElementById('q6').value,q7: document.getElementById('q7').value, other: document.getElementById('other-feedback').value };
+        const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
+        surveys.push(survey);
+        localStorage.setItem('surveys', JSON.stringify(surveys));
+        document.getElementById('survey-form').style.display = 'none';
+        document.getElementById('survey-thanks').style.display = 'block';
+    }
+
+    function renderAdminTables() {
+        const r = JSON.parse(localStorage.getItem('records') || '[]');
+        const s = JSON.parse(localStorage.getItem('surveys') || '[]');
+        document.getElementById('adminBody').innerHTML = r.map(x => `<tr><td>${x.time}</td><td>${x.dept}</td><td>${x.name}</td></tr>`).join('');
+        document.getElementById('surveyBody').innerHTML = s.map(x => `<tr><td>${x.time}</td><td>${x.q1}</td><td>${x.q2}</td><td>${x.q3}</td><td>${x.q4}</td><td>${x.q5}</td><td>${x.q6}</td><td>${x.q7}</td><td>${x.other}</td></tr>`).join('');
+    }
+
+    function exportToExcel(type) {
+        const data = JSON.parse(localStorage.getItem(type) || '[]');
+        if(!data.length) return alert("無資料");
+        let csv = "\uFEFF";
+        if(type==='records') { csv += "時間,單位,姓名\n"; data.forEach(x=> csv += `"${x.time}","${x.dept}","${x.name}"\n`); }
+        else { csv += "時間,Q1,Q2,Q3,Q4,Q5,Q6,Q7,建議\n"; data.forEach(x=> csv += `"${x.time}","${x.q1}","${x.q2}","${x.q3}","${x.q4}","${x.q5}","${x.q6}","${x.q7}","${x.other}"\n`); }
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'}));
+        link.download = `復興區公所_${type}.csv`;
+        link.click();
+    }
+
+    function clearData() { if(confirm("確定清空？")) { localStorage.clear(); location.reload(); } }
+</script>
 
     function toggleCheckin() {
         const currentState = localStorage.getItem('isCheckinOpen') === 'true';
