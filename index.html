@@ -197,7 +197,7 @@
                         <tr>
                             <td><strong>1. 兩公約專區</strong></td>
                             <td><a href="前測網址" target="_blank" class="btn" style="width:auto; padding:6px 12px; background:#4b5d67;">開始前測</a></td>
-                            <td><a href="後測網址" target="_blank" class="btn" style="width:auto; padding:6px 12px; background:var(--success-color);">開始後測</a></td>
+                            <td><a href="https://docs.google.com/forms/d/e/1FAIpQLScTgoZJDQttTNwpw_LTXBOlgFVKw4L5qeye6n29fcNrXhrY5g/viewform" target="_blank" class="btn" style="width:auto; padding:6px 12px; background:var(--success-color);">開始後測</a></td>
                         </tr>
                         <tr>
                             <td><strong>2. CEDAW專區</strong></td>
@@ -289,7 +289,7 @@
     }
 
     function tryAccessAdmin() {
-        if(prompt("請輸入密碼：") === ADMIN_PWD) {
+        if(prompt("2026：") === ADMIN_PWD) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById('admin').classList.add('active');
             renderAdminTables();
