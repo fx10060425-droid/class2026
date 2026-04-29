@@ -128,22 +128,22 @@
         <div class="card" style="border-left: 5px solid var(--primary-color);">
             <h3>1. 兩公約與人權教育</h3>
             <p id="file-name-1">目前教材：標準講義(PDF)</p>
-            <button class="btn" id="btn-1" style="background:#8ca1a5;">下載數位教材</button>
+            <button class="btn" id="btn-1" style="background:#8ca1a5;" onclick="window.open('materials/標準講義.pdf', '_blank')">下載數位教材</button>
         </div>
         <div class="card" style="border-left: 5px solid var(--primary-color);">
             <h3>2. CEDAW 初階：性別平權</h3>
             <p id="file-name-2">目前教材：初階重點(PDF)</p>
-            <button class="btn" id="btn-2" style="background:#8ca1a5;">下載數位教材</button>
+            <button class="btn" id="btn-2" style="background:#8ca1a5;" onclick="window.open('materials/初階重點.pdf', '_blank')">下載數位教材</button>
         </div>
         <div class="card" style="border-left: 5px solid var(--primary-color);">
             <h3>3. CEDAW 進階：實務解析</h3>
             <p id="file-name-3">目前教材：進階案例(PDF)</p>
-            <button class="btn" id="btn-3" style="background:#8ca1a5;">下載數位教材</button>
+            <button class="btn" id="btn-3" style="background:#8ca1a5;" onclick="window.open('materials/進階案例.pdf', '_blank')">下載數位教材</button>
         </div>
         <div class="card" style="border-left: 5px solid #d4a5a5;">
             <h3>4. EAP 課程：永生花療癒手作(限量25名)🌸</h3>
             <p id="file-name-4">目前教材：花藝引導影片(MP4)</p>
-            <button class="btn" id="btn-4" style="background:#d4a5a5;">進入影音引導</button>
+            <button class="btn" id="btn-4" style="background:#d4a5a5;" onclick="window.open('materials/花藝引導影片.mp4', '_blank')">進入影音引導</button>
         </div>
     </div>
 
@@ -298,14 +298,26 @@
     }
 
     // 教材模擬上傳邏輯
-    function uploadMaterial(id, input) {
-        if (input.files && input.files[0]) {
-            const fileName = input.files[0].name;
-            const materials = JSON.parse(localStorage.getItem('materials') || '{}');
-            materials[id] = fileName;
-            localStorage.setItem('materials', JSON.stringify(materials));
-            alert(`課程 ${id} 教材已更新為：${fileName}`);
-            loadMaterials();
+    function loadMaterials() {
+        const materials = JSON.parse(localStorage.getItem('materials') || '{}');
+        for (let i = 1; i <= 4; i++) {
+            if (materials[i]) {
+                const fileName = materials[i]; // 取得檔名
+                
+                if(document.getElementById(`file-name-${i}`)) document.getElementById(`file-name-${i}`).innerText = `最新教材：${fileName}`;
+                if(document.getElementById(`admin-file-${i}`)) document.getElementById(`admin-file-${i}`).innerText = fileName;
+                
+                // 取得按鈕並加入下載 (另開視窗) 功能
+                const btn = document.getElementById(`btn-${i}`);
+                if(btn) {
+                    btn.innerText = `下載：${fileName}`;
+                    btn.style.background = "var(--success-color)"; // 視覺回饋：有新教材時變更顏色
+                    btn.onclick = function() {
+                        // 設定路徑為 materials 資料夾下的該檔名
+                        window.open(`materials/${fileName}`, '_blank');
+                    };
+                }
+            }
         }
     }
 
