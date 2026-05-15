@@ -272,8 +272,8 @@
 </div>
 
 <footer>
-    <p>復興區公所人事室 2026 </p>
-    <p>老祖宗保佑我 🎶 溫柔與效率並存</p>
+    <p>製作者：復興區公所人事室 </p>
+    <p>歡迎交流，請勿盜取</p>
 </footer>
 
 <script>
@@ -295,7 +295,7 @@
     }
 
     function tryAccessAdmin() {
-        if(prompt("2026：") === ADMIN_PWD) {
+        if(prompt("請輸入密碼") === ADMIN_PWD) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById('admin').classList.add('active');
             renderAdminTables();
